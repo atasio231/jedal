@@ -1,129 +1,121 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <link rel="stylesheet" href="style.css">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>متجر التمور الفاخرة</title>
-</head>
-<body>
-    <div class="search-container">
-        <div class="search-wrapper">
-            <input type="text" class="search-input" placeholder="ابحث عن المنتجات...">
-            <button class="close-search">✕</button>
-        </div>
-    </div>
+// Menu toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Menu toggle
+    const menuToggle = document.querySelector('.menu-toggle');
+    const slideMenu = document.querySelector('.slide-menu');
+    const overlay = document.querySelector('.overlay');
+    const closeMenu = document.querySelector('.close-menu');
 
-    <header class="header">
-        <div class="header-content">
-            <div class="header-actions">
-                <button class="auth-btn">تسجيل دخول</button>
-                <button class="cart-btn">
-                    <img src="cart.png" style="width: 30px; height: 30px">
-                    <span class="cart-count">0</span>
-                </button>
-            </div>
-            
-            <img src="./logo.png" class="logo" style="width: 75px; height: 75px">
-            
-            <div class="header-controls">
-                <button class="menu-toggle">
-                    <span class="hamburger"></span>
-                </button>
-                <button class="search-toggle">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                </button>
-            </div>
+    menuToggle?.addEventListener('click', function() {
+        this.classList.toggle('active');
+        slideMenu.classList.toggle('active');
+        overlay.classList.toggle('active');
+    });
+
+    overlay?.addEventListener('click', function() {
+        menuToggle.classList.remove('active');
+        slideMenu.classList.remove('active');
+        this.classList.remove('active');
+    });
+
+    closeMenu?.addEventListener('click', function() {
+        menuToggle.classList.remove('active');
+        slideMenu.classList.remove('active');
+        overlay.classList.remove('active');
+    });
+
+    // Search functionality
+    const searchToggle = document.querySelector('.search-toggle');
+    const searchContainer = document.querySelector('.search-container');
+    const closeSearch = document.querySelector('.close-search');
+    const searchInput = document.querySelector('.search-input');
+
+    searchToggle?.addEventListener('click', () => {
+        searchContainer.classList.add('active');
+        setTimeout(() => searchInput.focus(), 300);
+    });
+
+    closeSearch?.addEventListener('click', () => {
+        searchContainer.classList.remove('active');
+        searchInput.value = '';
+    });
+
+    // Load products
+    loadFeaturedProducts();
+    loadMoreProducts();
+});
+
+// Products functionality
+let currentPage = 0;
+const productsPerPage = 8;
+let loading = false;
+
+function createProductCard(product) {
+    return `
+        <div class="product-card">
+            <div class="product-image" style="background-image: url('${product.image}');"></div>
+            <h2 class="product-title">${product.title}</h2>
+            <p class="product-price">${product.price} ريال</p>
+            <button class="add-to-cart">إضافة للسلة</button>
         </div>
-    </header>
+    `;
+}
+
+function loadMoreProducts() {
+    if (loading) return;
     
-    <div class="slide-menu">
-        <button class="close-menu">✕</button>
-        <ul class="nav-menu">
-            <li><a href="#">الصفحة الرئيسية</a></li>
-            <li><a href="#">جميع المنتجات</a></li>
-            <li><a href="#">جميع التصنيفات</a></li>
-            <li><a href="#">مجموعات التمور</a></li>
-        </ul>
-    </div>
+    const products = JSON.parse(localStorage.getItem('storeProducts') || '[]');
+    const startIndex = currentPage * productsPerPage;
     
-    <div class="overlay"></div>
+    if (startIndex >= products.length) {
+        document.getElementById('loadingIndicator').style.display = 'none';
+        return;
+    }
+
+    loading = true;
+    document.getElementById('loadingIndicator').style.display = 'block';
+
+    setTimeout(() => {
+        const productsToAdd = Math.min(productsPerPage, products.length - startIndex);
+        const currentProducts = products.slice(startIndex, startIndex + productsToAdd);
+        
+        const productsHTML = currentProducts.map(product => createProductCard(product)).join('');
+        document.getElementById('productsGrid').insertAdjacentHTML('beforeend', productsHTML);
+        
+        currentPage++;
+        loading = false;
+        document.getElementById('loadingIndicator').style.display = 'none';
+    }, 300);
+}
+
+function loadFeaturedProducts() {
+    const products = JSON.parse(localStorage.getItem('storeProducts') || '[]');
     
-    <nav class="desktop-nav">
-        <ul>
-            <li><a href="#">الصفحة الرئيسية</a></li>
-            <li><a href="#">جميع المنتجات</a></li>
-            <li><a href="#">جميع التصنيفات</a></li>
-            <li><a href="#">مجموعات التمور</a></li>
-        </ul>
-    </nav>
+    if (products.length > 0) {
+        const featuredProducts = products.slice(0, 4);
+        const sliderHTML = featuredProducts.map(product => createProductCard(product)).join('');
+        const sliderContainer = document.querySelector('.products-row');
+        if (sliderContainer) {
+            sliderContainer.innerHTML = sliderHTML;
+        }
+    }
+}
 
-    <div class="banner" style="width: calc(100% - 40px);"><img src="./prod/home.png"></div>
+// Scroll event for infinite loading
+window.addEventListener('scroll', () => {
+    const {scrollTop, scrollHeight, clientHeight} = document.documentElement;
+    if (scrollTop + clientHeight >= scrollHeight - 500) {
+        loadMoreProducts();
+    }
+});
 
-    <main class="main-content">
-        <h2 class="section-title">أحدث المنتجات</h2>
-        <div class="slider-container">
-            <button class="nav-button prev-button" onclick="scrollProducts('left')">‹</button>
-            <div class="products-row"></div>
-            <button class="nav-button next-button" onclick="scrollProducts('right')">›</button>
-        </div>
-
-        <div class="banner"><img src="./prod/banner.png" alt=""></div>
-
-        <h2 class="section-title">كل المنتجات</h2>
-        <div class="products-grid" id="productsGrid"></div>
-        <div id="loadingIndicator" class="loading">جاري التحميل...</div>
-    </main>
-
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3 style="color: white;">عن المتجر</h3>
-                <p>من نحن</p>
-                <p>سياسة الخصوصية</p>
-                <p>سياسة الاستبدال والاسترجاع</p>
-                <p>الشروط والأحكام</p>
-            </div>
-            <div class="footer-section">
-                <h3 style="color: white;">تواصل معنا</h3>
-                <p>966553124920+</p>
-                <p>jedalalnkheel@gmail.com</p>
-            </div>
-            <div class="footer-section">
-                <h3 style="color: white;">تابعنا</h3>
-                <div class="social-icons">
-                    <span>
-                        <a href="https://www.instagram.com/jedalalnkeel/" target="_blank">
-                            <img src="./instagram.png" style="height: 35px; width: 35px">
-                        </a>
-                    </span>
-                    <span>
-                        <a href="https://twitter.com/jedalalnakheel" target="_blank">
-                            <img src="./twitter.png" style="height: 35px; width: 35px">
-                        </a>
-                    </span>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <div style="background-color: #1c2a2a; padding: 15px 20px; width: 100%; border-top: 1px solid #ffffff">
-        <div style="max-width: 1200px; margin: 0 auto;">
-            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; align-items: center; margin-bottom: 15px;">
-                <img src="./mada.svg" style="height: 38px; width:58px; background-color:white;">
-                <img src="./visa master.webp" style="height: 38px; width:58px; background-color:white;">
-                <img src="./apple pay.webp" style="height: 38px; width:58px; background-color:white;">
-                <img src="./sbc.png" style="height: 38px; width:43px;">
-            </div>
-            <div style="text-align: center; color:white; font-size: 14px;">
-                <span>الحقوق محفوظة 2025 جدال النخيل | jedal alnkheel </span>
-            </div>
-        </div>
-    </div>
-
-    <script src="index.js"></script>
-</body>
-</html>
+// Slider navigation
+function scrollProducts(direction) {
+    const container = document.querySelector('.products-row');
+    const scrollAmount = 200;
+    if (direction === 'left') {
+        container.scrollLeft += scrollAmount;
+    } else {
+        container.scrollLeft -= scrollAmount;
+    }
+}

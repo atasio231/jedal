@@ -217,6 +217,57 @@
                 loadMoreProducts();
             }
         });
+        <!-- Add this right before the closing </body> tag in your index.html -->
+<script>
+    // Load products when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Try to get products from localStorage
+        let products = [];
+        try {
+            products = JSON.parse(localStorage.getItem('storeProducts')) || [];
+        } catch (e) {
+            console.error('Error loading products:', e);
+            products = [];
+        }
+
+        // Update the slider with new products
+        if (products.length > 0) {
+            const productsRow = document.querySelector('.products-row');
+            productsRow.innerHTML = products.slice(0, 4).map(product => `
+                <div class="product-card" style="min-width: 230px; flex-shrink: 0;">
+                    <div class="product-image" style="background-image: url('${product.image}');"></div>
+                    <h2 class="product-title">${product.title}</h2>
+                    <p class="product-price">${product.price} ريال</p>
+                    <button class="add-to-cart">إضافة للسلة</button>
+                </div>
+            `).join('');
+        }
+
+        // Update the grid with all products
+        const productsGrid = document.getElementById('productsGrid');
+        if (products.length > 0) {
+            productsGrid.innerHTML = products.map(product => `
+                <div class="product-card">
+                    <div class="product-image" style="background-image: url('${product.image}');"></div>
+                    <h2 class="product-title">${product.title}</h2>
+                    <p class="product-price">${product.price} ريال</p>
+                    <button class="add-to-cart">إضافة للسلة</button>
+                </div>
+            `).join('');
+        }
+    });
+
+    // Keep your existing scroll function
+    function scrollProducts(direction) {
+        const container = document.querySelector('.products-row');
+        const scrollAmount = 200;
+        if (direction === 'left') {
+            container.scrollLeft += scrollAmount;
+        } else {
+            container.scrollLeft -= scrollAmount;
+        }
+    }
+</script>
     </script>
 </body>
 </html>
